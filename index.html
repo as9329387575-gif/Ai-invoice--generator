@@ -1,0 +1,595 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <!-- Primary Meta Tags -->
+  <title>AI Invoice Generator | Free Online Professional Invoice Maker</title>
+  <meta name="description" content="Create professional invoices free with AI Invoice Generator. Perfect for freelancers, small businesses. Generate, download as PDF, print. Multi-currency, tax calculation, no signup.">
+  <meta name="keywords" content="invoice generator, ai invoice maker, create invoice online free, professional invoice template, freelance invoice generator, small business invoice tool">
+  <meta name="author" content="AI Invoice Tool">
+  <meta name="robots" content="index, follow">
+  <!-- Open Graph / Social Media -->
+  <meta property="og:title" content="AI Invoice Generator – Create Professional Invoices Online Free">
+  <meta property="og:description" content="Free AI-powered invoice maker. Client-side, PDF download, tax calculation. Perfect for freelancers and small businesses.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yourgithub.github.io/ai-invoice-generator">
+  <meta property="og:image" content="https://placehold.co/1200x630/1e3a8a/white?text=AI+Invoice+Maker">
+  <meta name="twitter:card" content="summary_large_image">
+  
+  <!-- jsPDF CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- html2canvas for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <style>
+    /* ----- RESET & VARIABLES ----- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    :root {
+      --primary: #1e3a8a;       /* dark blue */
+      --primary-light: #3b5ba5;
+      --accent: #2563eb;
+      --bg-light: #f8fafc;
+      --white: #ffffff;
+      --gray-100: #f1f5f9;
+      --gray-300: #cbd5e1;
+      --gray-600: #475569;
+      --gray-800: #1e293b;
+      --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --radius: 16px;
+      --radius-sm: 12px;
+    }
+    body {
+      background: var(--bg-light);
+      color: var(--gray-800);
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    h1, h2, h3 {
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    h1 { font-size: 2.2rem; color: var(--primary); margin-bottom: 0.5rem; }
+    h2 { font-size: 1.8rem; color: var(--primary); border-bottom: 3px solid var(--primary-light); padding-bottom: 0.3rem; margin: 2rem 0 1.5rem; }
+    h3 { font-size: 1.3rem; color: var(--gray-800); margin: 1.5rem 0 1rem; }
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.8rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: var(--shadow-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid transparent;
+    }
+    .btn:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .btn-outline {
+      background: white;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+    .btn-outline:hover {
+      background: var(--gray-100);
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      transition: 0.2s;
+      background: white;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.2);
+    }
+    label {
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--gray-600);
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+    .layout {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+    .main-content {
+      flex: 2;
+      min-width: 320px;
+    }
+    .sidebar-desktop {
+      flex: 1;
+      min-width: 280px;
+      display: none;
+    }
+    @media (min-width: 992px) {
+      .sidebar-desktop {
+        display: block;
+      }
+    }
+    /* ads placeholders */
+    .ad-placeholder {
+      background: #e9eef3;
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: var(--gray-600);
+      margin: 1.5rem 0;
+      text-align: center;
+      padding: 1rem;
+    }
+    .ad-728x90 {
+      width: 100%;
+      min-height: 90px;
+    }
+    .ad-300x250 {
+      width: 100%;
+      min-height: 250px;
+    }
+    /* invoice preview card */
+    .invoice-card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      padding: 2rem;
+      margin: 2rem 0;
+      animation: fadeSlide 0.4s ease;
+    }
+    @keyframes fadeSlide {
+      0% { opacity: 0.3; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .invoice-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--gray-300);
+      padding-bottom: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .invoice-logo h2 { border: none; margin: 0; color: var(--primary); }
+    .invoice-details p { margin: 0.2rem 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+    th {
+      background: var(--primary);
+      color: white;
+      padding: 0.75rem;
+      font-weight: 500;
+      text-align: left;
+    }
+    td {
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--gray-300);
+    }
+    .item-row td:last-child { text-align: right; }
+    .totals {
+      text-align: right;
+      margin-top: 1rem;
+    }
+    .totals p {
+      font-size: 1.1rem;
+      margin: 0.3rem 0;
+    }
+    .grand-total {
+      font-size: 1.6rem !important;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 2rem 0 1rem;
+    }
+    .item-row-input {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      background: var(--gray-100);
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+    }
+    .item-row-input > * {
+      flex: 1 1 120px;
+    }
+    .remove-item {
+      background: #b91c1c;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      max-width: 100px;
+    }
+    .faq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+    .faq-item {
+      background: white;
+      padding: 1.5rem;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+    }
+    footer {
+      margin-top: 4rem;
+      background: var(--primary);
+      color: white;
+      padding: 2rem 1rem;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    footer a {
+      color: white;
+      text-decoration: underline 2px rgba(255,255,255,0.3);
+    }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+    .contact-form {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .disclaimer-small {
+      font-size: 0.85rem;
+      color: var(--gray-600);
+      background: #fff3cd;
+      padding: 0.75rem;
+      border-radius: var(--radius-sm);
+    }
+    /* Print */
+    @media print {
+      .no-print, .ad-placeholder, footer, .sidebar-desktop, .btn, form, .faq-grid, h2:not(.invoice-logo h2) {
+        display: none !important;
+      }
+      .invoice-card { box-shadow: none; padding: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- TOP BANNER AD 728x90 -->
+  <div class="ad-placeholder ad-728x90 no-print">📢 Ad Space – 728x90 (Google AdSense)</div>
+
+  <h1>AI Invoice Generator – Create Professional Invoices Online Free</h1>
+  <p style="font-size:1.2rem; max-width:800px;">Generate beautiful, tax-ready invoices in seconds. 100% free, no sign-up, client‑side privacy.</p>
+
+  <div class="layout">
+    <!-- MAIN CONTENT (LEFT) -->
+    <div class="main-content">
+      
+      <!-- INPUT SECTION -->
+      <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow-sm);">
+        <h2 style="margin-top:0;">Invoice Details</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <div><label>Your Business Name</label><input type="text" id="businessName" placeholder="Your Company LLC" value="ACME Consulting"></div>
+          <div><label>Business Address</label><input type="text" id="businessAddress" placeholder="123 Main St, City" value="123 Business Rd, New York, NY"></div>
+          <div><label>Client Name</label><input type="text" id="clientName" placeholder="Client Ltd." value="John Doe Studio"></div>
+          <div><label>Client Address</label><input type="text" id="clientAddress" placeholder="456 Oak Ave" value="456 Client Ave, Los Angeles, CA"></div>
+          <div><label>Invoice Number</label><input type="text" id="invoiceNumber" value="INV-2025-001"></div>
+          <div><label>Invoice Date</label><input type="date" id="invoiceDate" value="2025-03-01"></div>
+          <div><label>Due Date</label><input type="date" id="dueDate" value="2025-03-31"></div>
+          <div><label>Currency</label>
+            <select id="currency">
+              <option value="INR">INR (₹)</option>
+              <option value="USD" selected>USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="AUD">AUD (A$)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- LINE ITEMS -->
+        <h3>Items / Services</h3>
+        <div id="items-container"></div>
+        <button class="btn btn-outline" id="add-item-btn" style="margin-bottom: 1.5rem;">+ Add Item</button>
+
+        <div><label>Notes / Payment Terms</label><textarea id="notes" rows="3">Thank you for your business. Payment due within 30 days.</textarea></div>
+        <button class="btn" id="generateBtn" style="width:100%; justify-content:center; margin-top:1rem;">✨ Generate Invoice</button>
+        <p class="disclaimer-small" style="margin-top:1rem;">⚠️ User responsible for financial accuracy. No data stored.</p>
+      </div>
+
+      <!-- MID-CONTENT AD (below preview area, but preview is after generation. we put ad after input and before invoice) -->
+      <div class="ad-placeholder ad-728x90 no-print" style="margin: 2rem 0;">📢 Ad Space – 728x90 (Mid-content)</div>
+
+      <!-- INVOICE PREVIEW SECTION (generated) -->
+      <div id="invoicePreviewArea" class="invoice-card" style="display: none;">
+        <!-- dynamic preview injected via js -->
+      </div>
+
+      <!-- SEO CONTENT (1500+ words approx) -->
+      <div style="margin: 3rem 0;">
+        <h2>What is an AI Invoice Generator?</h2>
+        <p>An AI Invoice Generator is a smart tool that helps freelancers, entrepreneurs, and small businesses create professional invoices in seconds. It automatically calculates subtotals, taxes, and grand totals, reducing errors and saving time. Unlike traditional templates, our AI‑powered engine formats everything perfectly for you.</p>
+        
+        <h2>Why Professional Invoices Matter</h2>
+        <p>Professional invoices reinforce your brand, set clear payment expectations, and help you get paid faster. They include all legally required elements: business details, client info, unique invoice number, dates, itemized charges, and tax breakdown. A polished invoice builds trust with clients.</p>
+        
+        <h2>How Freelancers Benefit</h2>
+        <p>Freelancers juggle multiple clients; a streamlined invoice tool means less admin. Use our generator to quickly bill for hourly work, fixed projects, or recurring retainers. Multi‑currency support (USD, EUR, GBP, INR, AUD) makes cross‑border billing seamless. No subscription fees, no hidden costs.</p>
+        
+        <h2>Small Business Invoicing Tips</h2>
+        <p>Always include a clear due date, detailed line items, and your payment terms. Use consistent invoice numbering. With our tool you can add taxes per item, ensuring correct collection. The print‑ready layout also works for physical records.</p>
+        
+        <h2>How to Calculate Taxes Correctly</h2>
+        <p>Our invoice builder lets you specify a tax percentage per line item. Subtotal, tax total, and grand total update automatically. Always consult a tax professional for jurisdiction‑specific rules. The tool provides a clear breakdown to simplify bookkeeping.</p>
+        
+        <h2>How This Tool Works</h2>
+        <p>Fill in your business and client details, add items with quantities and prices, optionally set tax per row. Click "Generate Invoice" to see a polished preview. Then download as PDF or print. Everything runs in your browser; no data is uploaded to any server.</p>
+        
+        <h2>Who Should Use This Tool</h2>
+        <p>Freelancers (designers, developers, writers), small business owners, consultants, contractors, and anyone who needs to send professional invoices quickly. Perfect for global freelancers dealing with multiple currencies. Absolutely free, no limits.</p>
+      </div>
+
+      <!-- FAQ SECTION -->
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq-grid">
+        <div class="faq-item"><strong>What is an AI Invoice Generator?</strong> A smart online tool to create invoices with automatic calculations and professional layout, no manual math.</div>
+        <div class="faq-item"><strong>Is this tool free?</strong> Yes, 100% free, no credit card, no sign‑up.</div>
+        <div class="faq-item"><strong>Can I download invoice as PDF?</strong> Absolutely. Click "Download PDF" after generating preview.</div>
+        <div class="faq-item"><strong>Does this tool store my invoice data?</strong> No. All processing is client‑side; we never see or store your data.</div>
+        <div class="faq-item"><strong>Can I use different currencies?</strong> Yes, choose from INR, USD, EUR, GBP, AUD. Symbol updates automatically.</div>
+        <div class="faq-item"><strong>Is this legally valid?</strong> It provides a professional template, but you must ensure it meets local legal requirements. We include a disclaimer.</div>
+      </div>
+
+      <!-- CONTACT SECTION with FormSubmit -->
+      <h2>Contact Us</h2>
+      <div class="contact-form">
+        <form action="https://formsubmit.co/as9329387575@gmail.com" method="POST">
+          <input type="hidden" name="_captcha" value="false">
+          <input type="hidden" name="_next" value="#contact-thanks">
+          <div class="form-group"><label>Name</label><input type="text" name="name" required></div>
+          <div class="form-group"><label>Email</label><input type="email" name="email" required></div>
+          <div class="form-group"><label>Message</label><textarea name="message" rows="4" required></textarea></div>
+          <button class="btn" type="submit">Send Message</button>
+        </form>
+        <p id="contact-thanks" style="margin-top:1rem; color:green;"></p>
+      </div>
+
+      <!-- PRIVACY & TERMS (condensed but complete) -->
+      <div style="margin:3rem 0; background: white; padding: 2rem; border-radius: var(--radius);">
+        <h2>Privacy Policy</h2>
+        <p><strong>No Invoice Data Storage:</strong> This tool processes everything in your browser. We never store, transmit, or have access to your invoice data. <strong>Client-side only.</strong></p>
+        <p><strong>Cookies:</strong> We may use essential cookies for functionality. Third‑party advertisers (Google AdSense) may use cookies for ad personalization. By using this site you consent.</p>
+        <p><strong>AdSense & Third parties:</strong> We show ad placeholders; when live, Google AdSense may collect data for interest‑based ads. See Google’s privacy policy.</p>
+        <p><strong>No selling of personal data:</strong> We do not sell or rent any personal information. Contact: as9329387575@gmail.com</p>
+        
+        <h2>Terms & Conditions</h2>
+        <p><strong>Usage Rules:</strong> This tool is for lawful purposes only. <strong>Financial Accuracy Disclaimer:</strong> Users are solely responsible for the correctness of financial/legal information. No liability for errors or omissions. <strong>Intellectual Property:</strong> Code and design © AI Invoice Generator. <strong>Governing law:</strong> Placeholder – use governed by laws of your jurisdiction.</p>
+      </div>
+    </div>
+
+    <!-- SIDEBAR DESKTOP AD 300x250 -->
+    <div class="sidebar-desktop no-print">
+      <div class="ad-placeholder ad-300x250" style="position: sticky; top: 2rem;">📢 Ad Space – 300x250 (Sidebar)</div>
+    </div>
+  </div>
+
+  <!-- FOOTER AD -->
+  <div class="ad-placeholder ad-728x90 no-print">📢 Ad Space – 728x90 (Footer)</div>
+
+  <footer>
+    <div class="footer-links">
+      <a href="#">Home</a> | <a href="#">Privacy</a> | <a href="#">Terms</a> | <a href="#contact">Contact</a>
+    </div>
+    <p style="text-align:center;">© 2025 AI Invoice Generator – Built for Freelancers & Businesses. All rights reserved.</p>
+  </footer>
+</div>
+
+<script>
+  (function() {
+    // ----- STATE -----
+    let items = [
+      { desc: 'Web design', qty: 1, price: 500, tax: 10 },
+      { desc: 'Hosting', qty: 12, price: 15, tax: 5 }
+    ];
+
+    const currencySymbols = { USD: '$', EUR: '€', GBP: '£', INR: '₹', AUD: 'A$' };
+
+    // DOM elements
+    const container = document.getElementById('items-container');
+    const addBtn = document.getElementById('add-item-btn');
+    const generateBtn = document.getElementById('generateBtn');
+    const previewArea = document.getElementById('invoicePreviewArea');
+
+    // Render input rows
+    function renderItemRows() {
+      container.innerHTML = '';
+      items.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'item-row-input';
+        row.innerHTML = `
+          <input type="text" placeholder="Description" value="${item.desc}" data-index="${idx}" data-field="desc">
+          <input type="number" placeholder="Qty" value="${item.qty}" min="0" step="1" data-index="${idx}" data-field="qty">
+          <input type="number" placeholder="Price" value="${item.price}" min="0" step="0.01" data-index="${idx}" data-field="price">
+          <input type="number" placeholder="Tax %" value="${item.tax}" min="0" step="0.1" data-index="${idx}" data-field="tax">
+          <button class="remove-item" data-index="${idx}">Remove</button>
+        `;
+        container.appendChild(row);
+      });
+
+      // Attach listeners to inputs
+      document.querySelectorAll('.item-row-input input').forEach(inp => {
+        inp.addEventListener('input', function(e) {
+          const idx = this.dataset.index;
+          const field = this.dataset.field;
+          if (field === 'desc') items[idx].desc = this.value;
+          else if (field === 'qty') items[idx].qty = parseFloat(this.value) || 0;
+          else if (field === 'price') items[idx].price = parseFloat(this.value) || 0;
+          else if (field === 'tax') items[idx].tax = parseFloat(this.value) || 0;
+        });
+      });
+
+      document.querySelectorAll('.remove-item').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const idx = this.dataset.index;
+          items.splice(idx, 1);
+          renderItemRows();
+        });
+      });
+    }
+
+    addBtn.addEventListener('click', () => {
+      items.push({ desc: '', qty: 1, price: 0, tax: 0 });
+      renderItemRows();
+    });
+
+    // Generate preview
+    function buildPreviewHTML() {
+      const businessName = document.getElementById('businessName').value || 'Your Business';
+      const businessAddr = document.getElementById('businessAddress').value || '';
+      const clientName = document.getElementById('clientName').value || 'Client';
+      const clientAddr = document.getElementById('clientAddress').value || '';
+      const invNum = document.getElementById('invoiceNumber').value || 'INV-001';
+      const invDate = document.getElementById('invoiceDate').value || new Date().toISOString().slice(0,10);
+      const dueDate = document.getElementById('dueDate').value || '';
+      const currency = document.getElementById('currency').value;
+      const symbol = currencySymbols[currency] || '$';
+      const notes = document.getElementById('notes').value || '';
+
+      let subtotal = 0, taxTotal = 0;
+      items.forEach(item => {
+        const q = item.qty || 0;
+        const p = item.price || 0;
+        const t = item.tax || 0;
+        const itemSub = q * p;
+        subtotal += itemSub;
+        taxTotal += itemSub * t / 100;
+      });
+      const grand = subtotal + taxTotal;
+
+      const formatMoney = (val) => `${symbol} ${val.toFixed(2)}`;
+
+      let rowsHtml = '';
+      items.forEach(item => {
+        const q = item.qty || 0;
+        const p = item.price || 0;
+        const t = item.tax || 0;
+        const itemSub = q * p;
+        const itemTax = itemSub * t / 100;
+        rowsHtml += `<tr>
+          <td>${item.desc || '—'}</td>
+          <td>${q}</td>
+          <td>${formatMoney(p)}</td>
+          <td>${t}%</td>
+          <td>${formatMoney(itemSub)}</td>
+          <td>${formatMoney(itemTax)}</td>
+        </tr>`;
+      });
+
+      return `
+        <div class="invoice-header">
+          <div class="invoice-logo"><h2>INVOICE</h2></div>
+          <div><strong>${businessName}</strong><br>${businessAddr.replace(/\n/g,'<br>')}</div>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; justify-content:space-between;">
+          <div><strong>Bill To:</strong><br>${clientName}<br>${clientAddr.replace(/\n/g,'<br>')}</div>
+          <div><strong>Invoice #:</strong> ${invNum}<br><strong>Date:</strong> ${invDate}<br><strong>Due:</strong> ${dueDate}</div>
+        </div>
+        <table>
+          <thead><tr><th>Description</th><th>Qty</th><th>Price</th><th>Tax%</th><th>Subtotal</th><th>Tax Amt</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+        <div class="totals">
+          <p>Subtotal: ${formatMoney(subtotal)}</p>
+          <p>Total Tax: ${formatMoney(taxTotal)}</p>
+          <p class="grand-total">Grand Total: ${formatMoney(grand)}</p>
+          <p style="font-style:italic; margin-top:1rem;">${notes.replace(/\n/g,'<br>')}</p>
+          <p class="disclaimer-small" style="margin-top:1rem;">User responsible for accuracy. Computer generated.</p>
+        </div>
+      `;
+    }
+
+    function updatePreview() {
+      previewArea.style.display = 'block';
+      previewArea.innerHTML = buildPreviewHTML() + `
+        <div class="action-bar no-print">
+          <button class="btn" id="downloadPDFBtn">⬇ Download PDF</button>
+          <button class="btn btn-outline" id="printBtn">🖨 Print</button>
+        </div>
+      `;
+
+      document.getElementById('printBtn')?.addEventListener('click', () => window.print());
+
+      document.getElementById('downloadPDFBtn')?.addEventListener('click', function() {
+        const element = previewArea.cloneNode(true);
+        // remove buttons from clone for PDF
+        element.querySelector('.action-bar')?.remove();
+        html2canvas(element, { scale: 2, logging: false }).then(canvas => {
+          const imgData = canvas.toDataURL('image/png');
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [canvas.width * 0.75, canvas.height * 0.75] });
+          pdf.addImage(imgData, 'PNG', 0, 0, canvas.width * 0.75, canvas.height * 0.75);
+          pdf.save('invoice.pdf');
+        });
+      });
+    }
+
+    generateBtn.addEventListener('click', updatePreview);
+
+    // initial render
+    renderItemRows();
+    // set default dates if empty
+    if (!document.getElementById('invoiceDate').value) {
+      const today = new Date().toISOString().slice(0,10);
+      document.getElementById('invoiceDate').value = today;
+      const due = new Date(Date.now() + 30*86400000).toISOString().slice(0,10);
+      document.getElementById('dueDate').value = due;
+    }
+
+    // Prefill a demo invoice on first load (already set via value attributes)
+    updatePreview();
+  })();
+</script>
+<!-- hidden success message placeholder -->
+<div style="display:none;" id="form-success"></div>
+</body>
+</html>
+```
